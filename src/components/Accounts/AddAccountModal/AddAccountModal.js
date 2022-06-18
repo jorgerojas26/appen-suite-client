@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
+import { createAccount } from 'services/accounts';
+
+import useSWR from 'swr';
 
 const AddAccountModal = ({ show, onClose }) => {
     const [formData, setFormData] = useState({
         accountEmail: '',
         accountPassword: '',
         validateBeforeSaving: true,
+    });
+    const [formError, setFormError] = useState('');
+
+    const { mutate: updateAccounts } = useSWR('/accounts', null, {
+        revalidateOnMount: false,
+        revalidateOnFocus: false,
     });
 
     const handleChange = (e) => {
@@ -22,15 +31,38 @@ const AddAccountModal = ({ show, onClose }) => {
         }
     };
 
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        setFormError('');
+
+        if (!formData.accountEmail || !formData.accountPassword) {
+            return setFormError('Please, fill all the required fields.');
+        }
+
+        const response = await createAccount({
+            email: formData.accountEmail,
+            password: formData.accountPassword,
+            validate: formData.validateBeforeSaving,
+        });
+
+        if (response.status === 200) {
+            updateAccounts((old) => [...old, response.data]);
+            onClose();
+        } else {
+            setFormError(response.data.error);
+        }
+    };
+
     return (
         <Modal show={show} onHide={onClose} enforceFocus autoFocus>
             <Modal.Header className='py-1' closeButton>
                 <Modal.Title>Add Account</Modal.Title>
             </Modal.Header>
-            <form>
+            <form onSubmit={handleSubmit}>
                 <Modal.Body>
                     <div className='form-group'>
-                        <label htmlFor='accountEmail'>Account Email</label>
+                        <label htmlFor='accountEmail'>* Account Email</label>
                         <input
                             type='text'
                             className='form-control'
@@ -38,11 +70,10 @@ const AddAccountModal = ({ show, onClose }) => {
                             id='accountEmail'
                             value={formData.accountEmail}
                             onChange={handleChange}
-                            required
                         />
                     </div>
                     <div className='form-group'>
-                        <label htmlFor='accountPassword'>Account Password</label>
+                        <label htmlFor='accountPassword'>* Account Password</label>
                         <input
                             type='password'
                             className='form-control'
@@ -50,7 +81,6 @@ const AddAccountModal = ({ show, onClose }) => {
                             id='accountPassword'
                             value={formData.accountPassword}
                             onChange={handleChange}
-                            required
                         />
                     </div>
                     <label>
@@ -65,6 +95,7 @@ const AddAccountModal = ({ show, onClose }) => {
                         />
                         validate?
                     </label>
+                    {formError && <p className='text-center text-danger'>{formError}</p>}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button type='submit' variant='success'>

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Card } from 'react-bootstrap';
 import { BookmarkCheckFill, BookmarkDashFill, CaretDown, Eye, EyeSlash, Trash } from 'react-bootstrap-icons';
 import ConfirmDialog from 'components/ConfirmDialog';
+import { deleteAccount, updateAccount } from 'services/accounts';
+import useSWR from 'swr';
 
 const AccountCard = ({ data, onSave }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -12,22 +14,32 @@ const AccountCard = ({ data, onSave }) => {
         emailError: false,
         passwordError: false,
     });
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const [viewPassword, setViewPassword] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-    const handleSubmit = (event) => {
+    const { mutate: updateAccounts } = useSWR('/accounts');
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // TODO: API call to save account changes to server database
         if (!formData.email) {
             setFormData({ ...formData, emailError: true });
         }
         if (!formData.password) {
             setFormData({ ...formData, passwordError: true });
         }
-        onSave && onSave(formData);
-        console.log('submitting', formData);
+        const response = await updateAccount(data._id, {
+            email: formData.email,
+            password: formData.password,
+            status: formData.active ? 'active' : 'inactive',
+        });
+
+        if (response.status === 200) {
+            updateAccounts((old) => [old.filter((acc) => acc._id !== data._id), response.data]);
+            onSave();
+        }
     };
 
     const handleChange = (event) => {
@@ -37,9 +49,14 @@ const AccountCard = ({ data, onSave }) => {
         });
     };
 
-    const handleDelete = () => {
-        // TODO: API call to delete account from server database
-        console.log('deleting', data);
+    const handleDelete = async () => {
+        setDeleteLoading(true);
+        const response = await deleteAccount(data?._id);
+
+        if (response.status === 200) {
+            updateAccounts((old) => old.filter((acc) => acc._id !== data._id));
+            setShowConfirmDialog(false);
+        }
     };
 
     const toggleViewPassword = (event) => {
@@ -139,6 +156,7 @@ const AccountCard = ({ data, onSave }) => {
                     show={showConfirmDialog}
                     message='Are you sure you want to delete this account?'
                     onConfirm={handleDelete}
+                    confirmLoading={deleteLoading}
                     onClose={() => setShowConfirmDialog(false)}
                 />
             )}

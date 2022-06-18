@@ -12,7 +12,7 @@ const AccountsCount = ({ accounts = [] }) => {
             <label className='text-danger'>Inactive:</label>
             <strong className='text-danger'>
                 {accounts.reduce((acc, current) => {
-                    return !current.status === 'active' ? acc + 1 : acc;
+                    return current.status !== 'active' ? acc + 1 : acc;
                 }, 0)}
             </strong>
         </div>

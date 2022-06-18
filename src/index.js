@@ -4,14 +4,27 @@ import App from './App';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { SWRConfig } from 'swr';
+import { BrowserRouter } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL;
-const fetcher = (key, ...args) => fetch(`${API_URL}${key}`, ...args).then((res) => res.json());
+
+const token = localStorage.getItem('token');
+
+const fetcher = (key, ...args) =>
+    fetch(`${API_URL}${key}`, {
+        ...args,
+        headers: {
+            ...args.headers,
+            Authorization: `Bearer ${token}`,
+        },
+    }).then((res) => res.json());
 
 ReactDOM.render(
     <React.StrictMode>
         <SWRConfig value={{ fetcher }}>
-            <App />
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
         </SWRConfig>
     </React.StrictMode>,
     document.getElementById('root')

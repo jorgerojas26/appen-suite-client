@@ -5,7 +5,6 @@ import AccountsToolbar from 'components/Accounts/AccountsToolbar';
 import AccountsCount from 'components/Accounts/AccountsCount';
 import AccountCard from 'components/Accounts/AccountCard';
 import Notification from 'components/Notification';
-import accountsMock from 'mocks/accounts';
 
 import useSWR from 'swr';
 
@@ -58,22 +57,32 @@ const AccountsOffcanvas = ({ show, onClose }) => {
                             />
                         </div>
                         <AccountsCount accounts={accounts} />
-                        <div className='overflow-auto w-100' style={{ maxHeight: '100%' }}>
-                            {accountsToRender.map((account) => (
-                                <AccountCard
-                                    key={account._id}
-                                    data={account}
-                                    onSave={() => setShowNotification(true)}
-                                />
-                            ))}
-                        </div>
+                        {(accounts && accounts.length === 0 && (
+                            <div className='text-center'>
+                                <h5>No accounts found</h5>
+                            </div>
+                        )) || (
+                            <div className='overflow-auto w-100' style={{ maxHeight: '100%' }}>
+                                {accountsToRender.map((account) => (
+                                    <AccountCard
+                                        key={account._id}
+                                        data={account}
+                                        onSave={() => setShowNotification(true)}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </Offcanvas.Body>
             </Offcanvas>
             {showAddAccountModal && (
                 <AddAccountModal show={showAddAccountModal} onClose={() => setShowAddAccountModal(false)} />
             )}
-            <Notification show={showNotification} onClose={() => setShowNotification(false)} />
+            <Notification
+                show={showNotification}
+                message='Changes made succesfully'
+                onClose={() => setShowNotification(false)}
+            />
         </>
     );
 };

@@ -13,6 +13,9 @@ const Toolbar = ({ onClick }) => {
             <Button name='settings' variant='secondary'>
                 Settings
             </Button>
+            <Button name='logout' variant='danger'>
+                Logout
+            </Button>
         </div>
     );
 };

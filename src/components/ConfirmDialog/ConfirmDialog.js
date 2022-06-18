@@ -1,6 +1,6 @@
 import { Modal } from 'react-bootstrap';
 
-const ConfirmDialog = ({ message, show, onConfirm, onClose }) => {
+const ConfirmDialog = ({ message, show, onConfirm, onClose, confirmLoading }) => {
     return (
         <Modal show={show} backdrop='static'>
             <Modal.Header>
@@ -10,8 +10,8 @@ const ConfirmDialog = ({ message, show, onConfirm, onClose }) => {
                 <p>{message || 'Are you sure you want to delete this item?'}</p>
             </Modal.Body>
             <Modal.Footer>
-                <button className='btn btn-primary' onClick={onConfirm}>
-                    Yes
+                <button className='btn btn-primary' onClick={onConfirm} disabled={confirmLoading}>
+                    {confirmLoading ? 'Loading...' : 'Yes'}
                 </button>
                 <button className='btn btn-default' onClick={onClose}>
                     No
