@@ -19,5 +19,6 @@ export const stop = async () => {
         headers: { Authorization: `Bearer ${token}` },
     });
 
-    return { status: response.status };
+    const data = await response.json();
+    return { status: response.status, data };
 };

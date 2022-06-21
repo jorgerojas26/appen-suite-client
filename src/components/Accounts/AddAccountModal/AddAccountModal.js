@@ -47,7 +47,7 @@ const AddAccountModal = ({ show, onClose }) => {
         });
 
         if (response.status === 200) {
-            updateAccounts((old) => [...old, response.data]);
+            updateAccounts((old) => [...old, ...response.data]);
             onClose();
         } else {
             setFormError(response.data.error);
@@ -70,6 +70,7 @@ const AddAccountModal = ({ show, onClose }) => {
                             id='accountEmail'
                             value={formData.accountEmail}
                             onChange={handleChange}
+                            autoFocus
                         />
                     </div>
                     <div className='form-group'>

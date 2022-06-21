@@ -10,3 +10,16 @@ body,
 div {
     margin: 0;
 }
+
+.animated-rows tr {
+    animation: fadeIn 1s ease-in-out;
+
+    @keyframes fadeIn {
+        from {
+            backgroundcolor: lightgreen;
+        }
+        to {
+            backgroundcolor: white;
+        }
+    }
+}

@@ -12,7 +12,7 @@ const Task = ({ title, pay, level, onStatistics, onPause, onDelete }) => {
             <Card.Header
                 className={`fw-bold d-flex justify-content-between align-items-center gap-2 px-1 bg-${colorState}`}
             >
-                <Badge bg="light" className="text-dark">
+                <Badge bg='light' className='text-dark'>
                     ${pay}
                 </Badge>
                 <span
@@ -25,18 +25,18 @@ const Task = ({ title, pay, level, onStatistics, onPause, onDelete }) => {
                 <Badge>Level {level}</Badge>
             </Card.Header>
             <Card.Body>
-                <Container className="d-flex flex-wrap gap-2 justify-content-center">
-                    <Badge bg="success">7 collecting</Badge>
-                    <Badge bg="danger">3 paused</Badge>
-                    <Badge bg="secondary">2 expired</Badge>
+                <Container className='d-flex flex-wrap gap-2 justify-content-center'>
+                    <Badge bg='success'>7 collecting</Badge>
+                    <Badge bg='danger'>3 paused</Badge>
+                    <Badge bg='secondary'>2 expired</Badge>
                 </Container>
             </Card.Body>
-            <Card.Footer className="d-flex justify-content-center align-items-center gap-2 flex-wrap">
-                <Button variant="info" onClick={onStatistics}>
-                    Statistics
+            <Card.Footer className='d-flex justify-content-center align-items-center gap-2 flex-wrap'>
+                <Button variant='info' onClick={onStatistics}>
+                    Stats
                 </Button>
                 <Button
-                    variant="primary"
+                    variant='primary'
                     onClick={() => {
                         setPaused(!paused);
                         onPause && onPause();
@@ -44,7 +44,7 @@ const Task = ({ title, pay, level, onStatistics, onPause, onDelete }) => {
                 >
                     {stateText}
                 </Button>
-                <Button variant="danger" onClick={onDelete}>
+                <Button variant='danger' onClick={onDelete}>
                     Delete
                 </Button>
             </Card.Footer>

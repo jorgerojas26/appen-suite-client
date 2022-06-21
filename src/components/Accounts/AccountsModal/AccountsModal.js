@@ -57,7 +57,7 @@ const AccountsOffcanvas = ({ show, onClose }) => {
                             />
                         </div>
                         <AccountsCount accounts={accounts} />
-                        {(accounts && accounts.length === 0 && (
+                        {(((accounts && accounts.length === 0) || !accounts) && (
                             <div className='text-center'>
                                 <h5>No accounts found</h5>
                             </div>

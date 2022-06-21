@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { Button, Spinner } from 'react-bootstrap';
 
-const TimeStarter = ({ paused, onToggle, loading }) => {
+const TimeStarter = ({ paused, onToggle, loading, disabled }) => {
     const [delay, setDelay] = useState(1000);
 
     const toggle = () => {
@@ -26,7 +26,7 @@ const TimeStarter = ({ paused, onToggle, loading }) => {
                 />
                 <span className='input-group-text'>ms</span>
             </div>
-            <Button variant={paused ? 'success' : 'danger'} onClick={toggle}>
+            <Button variant={paused ? 'success' : 'danger'} onClick={toggle} disabled={disabled}>
                 {loading ? <Spinner animation='border' size='sm' /> : paused ? 'Start' : 'Pause'}
             </Button>
         </div>

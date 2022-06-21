@@ -10,6 +10,9 @@ const Toolbar = ({ onClick }) => {
             <Button name='favorites' variant='info'>
                 Favorites
             </Button>
+            <Button name='proxies' variant='warning'>
+                Proxies
+            </Button>
             <Button name='settings' variant='secondary'>
                 Settings
             </Button>

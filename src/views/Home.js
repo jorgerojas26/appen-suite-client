@@ -9,8 +9,9 @@ import TaskStatistics from 'components/TaskStatistics';
 import TaskListTable from 'components/TaskListTable';
 import Toolbar from 'components/Toolbar';
 import Task from 'components/Task';
+import ProxiesModal from 'components/ProxiesModal';
 
-import { tasks as tasksMock, taskList as taskListMock } from 'mocks/tasks';
+import { tasks as tasksMock } from 'mocks/tasks';
 import favoritesMock from 'mocks/favorites';
 import statisticsMock from 'mocks/statistics';
 import blocksMock from 'mocks/blocks';
@@ -27,32 +28,42 @@ function Home() {
     const [showFavoritesModal, setShowFavoritesModal] = useState(false);
     const [showBlocksModal, setShowBlocksModal] = useState(false);
     const [showAccountsModal, setShowAccountsModal] = useState(false);
+    const [showProxiesModal, setShowProxiesModal] = useState(false);
     const [paused, setPaused] = useState(true);
     const [delay, setDelay] = useState(1000);
     const [scrapingEmail, setScrapingEmail] = useState();
     const [pauseLoading, setPauseLoading] = useState(false);
 
-    const { data } = useSWR(!paused && delay ? '/status' : null, null, {
+    const { data: statusData } = useSWR(!paused && delay ? '/status' : null, null, {
         refreshInterval: Number(delay) / 2,
         revalidateOnFocus: false,
         //revalidateIfStale: true,
         refreshWhenHidden: true,
+        errorRetryCount: 3,
+        shouldRetryOnError: false,
+    });
+
+    const { mutate: updateFirstStatusData } = useSWR('/status', null, {
+        revalidateOnMount: false,
+        revalidateOnFocus: false,
     });
 
     const { data: accounts } = useSWR('/accounts');
 
     const onToolbarClick = (event) => {
         switch (event.target.name) {
-            case 'favorites':
-                setShowFavoritesModal(true);
+            case 'accounts':
+                setShowAccountsModal(true);
                 break;
             case 'blocks':
                 setShowBlocksModal(true);
                 break;
-            case 'accounts':
-                setShowAccountsModal(true);
+            case 'favorites':
+                setShowFavoritesModal(true);
                 break;
-
+            case 'proxies':
+                setShowProxiesModal(true);
+                break;
             case 'logout':
                 localStorage.removeItem('token');
                 navigate('/signin');
@@ -69,6 +80,17 @@ function Home() {
         setSelectedTaskTitle(task.title);
         setShowStatistics(true);
     };
+
+    useEffect(() => {
+        updateFirstStatusData().then((response) => {
+            if (!response || response.error === 'No scraping is running') {
+                return setPaused(true);
+            } else if (response && response.scraping_stopped === false) {
+                setPaused(false);
+                setScrapingEmail(response.scraping_email);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         if (accounts && accounts.length) {
@@ -115,6 +137,7 @@ function Home() {
                             setPauseLoading(false);
                         }
                     }}
+                    disabled={!scrapingEmail || !delay}
                 />
                 <Toolbar onClick={onToolbarClick} />
             </Container>
@@ -148,14 +171,15 @@ function Home() {
                                     className='py-0 px-3 m-0'
                                     onChange={(value) => setScrapingEmail(value)}
                                     value={scrapingEmail}
+                                    disabled={!accounts || !accounts.length}
                                 >
-                                    {accounts?.map((account, index) => (
+                                    {accounts?.map((account) => (
                                         <option key={account._id} value={account.email}>
                                             {account.email}
                                         </option>
                                     ))}
                                 </select>
-                                {accounts?.length === 0 && (
+                                {(accounts?.length === 0 || !accounts) && (
                                     <h6 className='text-danger'>No accounts found. Please add one.</h6>
                                 )}
                             </div>
@@ -163,10 +187,11 @@ function Home() {
                         </Container>
                     </Col>
                     <Col xs='12' md='6'>
-                        <TaskListTable data={taskListMock} />
+                        <TaskListTable data={statusData?.task_list} />
                     </Col>
                     <Col xs='6'>
-                        <TaskListTable data={taskListMock} />
+                        {/* TODO: Add new tasks logic */}
+                        <TaskListTable data={[]} />
                     </Col>
                 </Row>
             </Container>
@@ -196,6 +221,7 @@ function Home() {
             {showAccountsModal && (
                 <AccountsModal show={showAccountsModal} onClose={() => setShowAccountsModal(false)} />
             )}
+            {showProxiesModal && <ProxiesModal show={showProxiesModal} onClose={() => setShowProxiesModal(false)} />}
         </Container>
     );
 }

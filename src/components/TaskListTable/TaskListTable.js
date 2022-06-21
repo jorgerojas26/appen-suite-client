@@ -13,7 +13,7 @@ const TaskListTable = ({ data }) => {
                     <th>RATING</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody className='animated-rows'>
                 {data &&
                     data.map((task) => (
                         <tr key={task.id}>
