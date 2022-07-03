@@ -1,7 +1,18 @@
 import { useState } from 'react';
 import { Card, Button, Badge, Container } from 'react-bootstrap';
 
-const Task = ({ title, pay, level, onStatistics, onPause, onDelete }) => {
+const Task = ({
+    title,
+    pay,
+    level,
+    onStatistics,
+    collecting_count,
+    paused_count,
+    expired_count,
+    waiting_for_resolution_count,
+    onPause,
+    onDelete,
+}) => {
     const [paused, setPaused] = useState(false);
 
     const stateText = paused ? 'Resume' : 'Pause';
@@ -13,7 +24,7 @@ const Task = ({ title, pay, level, onStatistics, onPause, onDelete }) => {
                 className={`fw-bold d-flex justify-content-between align-items-center gap-2 px-1 bg-${colorState}`}
             >
                 <Badge bg='light' className='text-dark'>
-                    ${pay}
+                    {pay}
                 </Badge>
                 <span
                     title={title}
@@ -26,9 +37,10 @@ const Task = ({ title, pay, level, onStatistics, onPause, onDelete }) => {
             </Card.Header>
             <Card.Body>
                 <Container className='d-flex flex-wrap gap-2 justify-content-center'>
-                    <Badge bg='success'>7 collecting</Badge>
-                    <Badge bg='danger'>3 paused</Badge>
-                    <Badge bg='secondary'>2 expired</Badge>
+                    <Badge>{waiting_for_resolution_count} resolving</Badge>
+                    <Badge bg='success'>{collecting_count} collecting</Badge>
+                    <Badge bg='danger'>{paused_count} paused</Badge>
+                    <Badge bg='secondary'>{expired_count} expired</Badge>
                 </Container>
             </Card.Body>
             <Card.Footer className='d-flex justify-content-center align-items-center gap-2 flex-wrap'>

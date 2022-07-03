@@ -31,7 +31,7 @@ const TaskStatistics = ({ placement, taskTitle, show, onClose, statistics }) => 
                         statistics.map((account) => {
                             return (
                                 <div
-                                    key={account.accountId}
+                                    key={account.account_id}
                                     style={{
                                         display: 'grid',
                                         gridTemplateColumns: '1fr 50px 25px 20px 20px',
@@ -39,11 +39,15 @@ const TaskStatistics = ({ placement, taskTitle, show, onClose, statistics }) => 
                                         alignItems: 'center',
                                     }}
                                 >
-                                    <Badge bg={LEGEND[account.status]} key={account.account} title={account.account}>
-                                        {account.accountEmail}:
+                                    <Badge
+                                        bg={LEGEND[account.task_status]}
+                                        key={account.account_id}
+                                        title={account.email}
+                                    >
+                                        {account.email}:
                                     </Badge>
-                                    <Badge bg='secondary' className='text-light' title={account.fetchCount}>
-                                        {account.fetchCount || 0}
+                                    <Badge bg='secondary' className='text-light' title={account.fetch_count}>
+                                        {account.fetch_count || 0}
                                     </Badge>
                                     <Badge bg='warning' className='text-dark' title={account.foundCount}>
                                         {account.foundCount || 0}

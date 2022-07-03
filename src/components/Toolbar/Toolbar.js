@@ -13,9 +13,9 @@ const Toolbar = ({ onClick }) => {
             <Button name='proxies' variant='warning'>
                 Proxies
             </Button>
-            <Button name='settings' variant='secondary'>
+            {/* <Button name='settings' variant='secondary'>
                 Settings
-            </Button>
+            </Button> */}
             <Button name='logout' variant='danger'>
                 Logout
             </Button>

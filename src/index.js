@@ -4,7 +4,7 @@ import App from './App';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { SWRConfig } from 'swr';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -22,9 +22,9 @@ const fetcher = (key, ...args) =>
 ReactDOM.render(
     <React.StrictMode>
         <SWRConfig value={{ fetcher }}>
-            <BrowserRouter>
+            <HashRouter>
                 <App />
-            </BrowserRouter>
+            </HashRouter>
         </SWRConfig>
     </React.StrictMode>,
     document.getElementById('root')

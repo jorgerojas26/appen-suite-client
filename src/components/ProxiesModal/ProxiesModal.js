@@ -9,6 +9,7 @@ import {
     Button,
     ModalFooter,
 } from 'react-bootstrap';
+import { Trash } from 'react-bootstrap-icons';
 
 import { saveProxyBulk, deleteProxy } from 'services/proxies';
 
@@ -141,7 +142,7 @@ const ProxiesModal = ({ show, onClose }) => {
                                 </div>
                                 <div>
                                     <Button variant='danger' onClick={() => handleDelete(proxy._id)}>
-                                        -
+                                        <Trash />
                                     </Button>
                                 </div>
                             </ListGroupItem>
@@ -162,8 +163,9 @@ const ProxiesModal = ({ show, onClose }) => {
                         <Button variant='info'>Export</Button>
                     </div>
                     <div className='d-flex gap-1'>
-                        <Button>Save</Button>
-                        <Button variant='secondary'>Cancel</Button>
+                        <Button variant='secondary' onClick={onClose}>
+                            Cancel
+                        </Button>
                     </div>
                 </div>
             </ModalFooter>

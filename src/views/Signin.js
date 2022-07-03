@@ -31,14 +31,14 @@ function Signin() {
         try {
             const response = await login(email.value, password.value);
 
-            if (response.status === 200) {
+            if (response && response.status === 200) {
                 localStorage.setItem('token', response.data.token);
                 navigate('/');
             } else {
-                setFormError(response.data.msg);
+                setFormError(response ? response.data.message : 'Something went wrong');
             }
         } catch (err) {
-            console.log(err);
+            setFormError(err.message);
         }
     };
 

@@ -3,12 +3,5 @@
     "description": "The ultimate suite client for Appen",
     "version": "1.0.0",
     "manifest_version": 2,
-    "permissions": ["tabs"],
-    "browser_action": {
-        "default_popup": "build/index.html",
-        "default_title": "Appen Suite Client"
-    },
-    "background": {
-        "page": "index.html"
-    }
+    "permissions": ["tabs", "contextualIdentities", "proxy", "<all_urls>", "cookies"]
 }
