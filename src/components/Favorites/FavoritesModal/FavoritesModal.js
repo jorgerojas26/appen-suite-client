@@ -1,87 +1,58 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { Offcanvas, Button } from 'react-bootstrap';
 import FavoritesAccountsModal from '../FavoritesAccountsModal';
 import FavoritesItem from '../FavoritesItem';
 import AddItemModal from 'components/AddItemModal';
 
-const FavoritesModal = ({ data = [], show, onClose }) => {
+import { toggleFavoriteActiveInAllAccounts, createFavorite } from '../../../services/favorite';
+
+import useSWR from 'swr';
+
+const FavoritesModal = ({ show, onClose }) => {
+    const { data: favorites, mutate: updateFavorites } = useSWR('/favorites');
+
     const [selectedFavorite, setSelectedFavorite] = useState(null);
     const [showAddItemModal, setShowAddItemModal] = useState(false);
-
-    // This is a temporal workaround to toggle active
-    const [favoritesData, setFavoritesData] = useState(data);
-
-    // This should be done server side
-    const favoritesDataWithStatus = useMemo(() => {
-        return favoritesData.map((favorite) => {
-            const activeFavorites = favorite.accounts.filter((account) => account.active);
-            const allActive = activeFavorites.length === favorite.accounts.length;
-            const someActive = !allActive && activeFavorites.length > 0;
-
-            return {
-                ...favorite,
-                status: allActive ? 'active' : someActive ? 'mixed' : 'inactive',
-            };
-        });
-    }, [favoritesData]);
 
     const renderIncludeList = () => {
         return (
             <div className='container hstack gap-2'>
-                {favoritesDataWithStatus.map((item) => {
-                    return (
-                        <FavoritesItem
-                            key={item._id}
-                            title={item.title}
-                            status={item.status}
-                            onClick={(event) => {
-                                if (event.ctrlKey) {
-                                    toggleActive({ favoriteId: item._id });
-                                } else {
-                                    setSelectedFavorite(item);
-                                }
-                            }}
-                        />
-                    );
-                })}
+                {favorites &&
+                    favorites.map((favorite) => {
+                        const id = favorites._id;
+                        const name = favorite.name;
+
+                        const activeInAllAccounts = favorite.accounts.every((account) => account.favorite_active);
+                        const activeInSomeAccounts = favorite.accounts.some((account) => account.favorite_active);
+
+                        const status = activeInAllAccounts
+                            ? 'active'
+                            : !activeInAllAccounts && activeInSomeAccounts
+                            ? 'mixed'
+                            : 'inactive';
+
+                        return (
+                            <FavoritesItem
+                                key={id}
+                                title={name}
+                                status={status}
+                                onClick={async (event) => {
+                                    if (event.ctrlKey) {
+                                        await toggleFavoriteActiveInAllAccounts(
+                                            id,
+                                            status === 'mixed' || status === 'active' ? false : true
+                                        );
+                                        updateFavorites();
+                                    } else {
+                                        setSelectedFavorite(favorite);
+                                    }
+                                }}
+                            />
+                        );
+                    })}
             </div>
         );
-    };
-
-    const toggleActive = ({ favoriteId, accountId }) => {
-        if (favoriteId) {
-            if (accountId) {
-                // TODO: toggle active this particular favorite on this particular account on server
-                const accountFavorite = favoritesData
-                    .find((favorite) => favorite._id === favoriteId)
-                    .accounts.find((account) => account._id === accountId);
-                accountFavorite.active = !accountFavorite.active;
-                setFavoritesData([...favoritesData]);
-            } else {
-                // TODO: toggle active this particular favorite on all accounts on server
-                const allActive = favoritesData
-                    .find((favorite) => favorite._id === favoriteId)
-                    .accounts.every((account) => account.active);
-
-                if (allActive) {
-                    favoritesData
-                        .find((favorite) => favorite._id === favoriteId)
-                        .accounts.map((account) => {
-                            account.active = false;
-                            return account;
-                        });
-                } else {
-                    favoritesData
-                        .find((favorite) => favorite._id === favoriteId)
-                        .accounts.map((account) => {
-                            account.active = true;
-                            return account;
-                        });
-                }
-                setFavoritesData([...favoritesData]);
-            }
-        }
     };
 
     return (
@@ -109,14 +80,31 @@ const FavoritesModal = ({ data = [], show, onClose }) => {
                     show={selectedFavorite}
                     data={selectedFavorite?.accounts}
                     onClose={() => setSelectedFavorite(null)}
-                    toggleActive={(accountId) => toggleActive({ favoriteId: selectedFavorite._id, accountId })}
+                    onToggle={() => {
+                        updateFavorites();
+                        setSelectedFavorite({
+                            ...selectedFavorite,
+                            accounts: selectedFavorite.accounts.map((account) => {
+                                return {
+                                    ...account,
+                                    favorite_active: !account.favorite_active,
+                                };
+                            }),
+                        });
+                    }}
+                    // toggleActive={(accountId) => toggleActive({ favoriteId: selectedFavorite._id, accountId })}
                 />
             )}
             {showAddItemModal && (
                 <AddItemModal
                     show={showAddItemModal}
                     onClose={() => setShowAddItemModal(false)}
-                    onSubmit={(item) => {
+                    onSubmit={async (favoriteName) => {
+                        await createFavorite({
+                            name: favoriteName,
+                            max_accounts_per_proxy: 3,
+                        });
+                        updateFavorites();
                         setShowAddItemModal(false);
                     }}
                 />

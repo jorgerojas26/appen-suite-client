@@ -1,7 +1,7 @@
 import { Offcanvas, Badge, Button } from 'react-bootstrap';
 import StatisticsLegend, { LEGEND } from './StatisticsLegend';
 
-const TaskStatistics = ({ placement, taskTitle, show, onClose, statistics }) => {
+const TaskStatistics = ({ placement, taskTitle, show, statistics, onClose, onPause, onResume }) => {
     return (
         <Offcanvas
             show={show}
@@ -52,8 +52,19 @@ const TaskStatistics = ({ placement, taskTitle, show, onClose, statistics }) => 
                                     <Badge bg='warning' className='text-dark' title={account.foundCount}>
                                         {account.foundCount || 0}
                                     </Badge>
-                                    <Button variant='danger' className='py-0 px-1' title='Pause'>
-                                        P
+                                    <Button
+                                        variant={account.task_status === 'paused' ? 'primary' : 'danger'}
+                                        className='py-0 px-1'
+                                        title='Pause'
+                                        onClick={() => {
+                                            if (account.task_status === 'paused') {
+                                                onResume(account.account_id);
+                                            } else {
+                                                onPause(account.account_id);
+                                            }
+                                        }}
+                                    >
+                                        {account.task_status === 'paused' ? 'R' : 'P'}
                                     </Button>
                                     <Button variant='danger' className='py-0 px-1' title='Delete'>
                                         D

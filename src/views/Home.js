@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Container, Col, Row } from 'react-bootstrap';
 
 import TimeStarter from 'components/TimeStarter';
@@ -18,6 +18,13 @@ import { Navigate, useNavigate } from 'react-router-dom';
 
 import { create_tab } from '../browser/tabs';
 import { start, stop } from '../services/controls';
+import {
+    setTaskAsResolved,
+    pauseTaskInAllAccounts,
+    resumeTaskInAllAccounts,
+    pauseTask,
+    resumeTask,
+} from '../services/task';
 import { getStatus } from '../services/status';
 import useSWR from 'swr';
 
@@ -43,6 +50,7 @@ function Home() {
     const [delay, setDelay] = useState(1000);
     const [scrapingEmail, setScrapingEmail] = useState();
     const [pauseLoading, setPauseLoading] = useState(false);
+    const [resolvingTasks, setResolvingTasks] = useState([]);
 
     const { data: statusData, mutate: updateStatusData } = useSWR('/status', null, {
         refreshInterval: Number(delay) / 2,
@@ -56,8 +64,41 @@ function Home() {
 
     const { data: accounts } = useSWR('/accounts');
 
-    const selected_task_statistics = statusData?.current_collecting_tasks
-        ? statusData.current_collecting_tasks[selectedTask.id]?.accounts
+    const current_collecting_tasks = useMemo(() => {
+        if (!statusData) {
+            return [];
+        }
+
+        const collecting_tasks = {};
+
+        statusData.accounts.forEach((account) => {
+            account.current_collecting_tasks.forEach((task) => {
+                const account_object = {
+                    account_id: account._id,
+                    email: account.email,
+                    account_status: account.status,
+                    fetch_count: task.fetch_count,
+                    task_status: task.status,
+                    pay: task.payout,
+                    level: task.level,
+                };
+                collecting_tasks[task.id] = {
+                    title: task.name,
+                    pay: task.payout,
+                    level: task.level,
+                    status: task.status,
+                    accounts: collecting_tasks[task.id]?.accounts
+                        ? [...collecting_tasks[task.id].accounts, account_object]
+                        : [account_object],
+                };
+            });
+        });
+
+        return collecting_tasks;
+    }, [statusData]);
+
+    const selected_task_statistics = current_collecting_tasks
+        ? current_collecting_tasks[selectedTask.id]?.accounts
         : {};
 
     const onToolbarClick = (event) => {
@@ -93,7 +134,6 @@ function Home() {
 
     useEffect(() => {
         getStatus().then((response) => {
-            console.log('updateFirstStatusData', response);
             if (response.status !== 200 || !response.data || response.data.error === 'No scraping is running') {
                 return setPaused(true);
             } else if (response.data && response.data.scraping_stopped === false) {
@@ -122,7 +162,6 @@ function Home() {
     }, []); */
 
     useEffect(() => {
-        // BINGO! This method can catch proxy info.
         const proxyListener = async (requestDetails) => {
             const cookieStoreId = requestDetails.cookieStoreId;
             const identity = await browser.contextualIdentities.get(cookieStoreId);
@@ -131,52 +170,81 @@ function Home() {
             const proxy_host = proxy_url.hostname;
             const proxy_port = proxy_url.port || 80;
 
-            if (proxy_string) {
+            /* if (proxy_string) {
                 return {
                     type: 'http',
                     host: proxy_host,
                     port: proxy_port,
                 };
-            }
+            } */
 
             return null;
         };
 
-        const proxyErrorListener = (details) => {
+        /* const proxyErrorListener = (details) => {
             console.log('ERROR details', details);
-        };
+        }; */
 
         const filter = { urls: ['<all_urls>'] };
 
         if (window.browser) {
             window.browser.proxy.onRequest.addListener(proxyListener, filter);
-            window.browser.proxy.onError.addListener(proxyErrorListener);
+            // window.browser.proxy.onError.addListener(proxyErrorListener);
         }
 
         return () => {
             if (window.browser) {
                 window.browser.proxy.onRequest.removeListener(proxyListener);
-                window.browser.proxy.onError.removeListener(proxyErrorListener);
+                // window.browser.proxy.onError.removeListener(proxyErrorListener);
             }
         };
     }, []);
 
-    /* useEffect(() => {
+    useEffect(() => {
         if (statusData) {
             statusData.accounts.forEach((account) => {
                 if (account.tasks_waiting_for_resolution && account.tasks_waiting_for_resolution.length) {
                     account.tasks_waiting_for_resolution.forEach((task) => {
-                        if (window.browser) {
-                            window.browser.tabs.create({
-                                active: true,
-                                url: `${task.url}&proxy=${task.proxy.host}`,
-                            });
+                        const already_resolving = resolvingTasks.find(
+                            (t) => t.id === task.id && t.account_email === account.email
+                        );
+
+                        if (!already_resolving) {
+                            setResolvingTasks([...resolvingTasks, { id: task.id, account_email: account.email }]);
+                            if (window.browser) {
+                                create_tab({
+                                    url: task.url,
+                                    proxy: `http://${task.proxy.host}:${task.proxy.port}`,
+                                    cookies: account.cookieJar.cookies,
+                                    task_id: task.id,
+                                    account_email: account.email,
+                                    onResolved: async () => {
+                                        await setTaskAsResolved(account._id, task.id);
+                                        updateStatusData((data) => ({
+                                            ...data,
+                                            accounts: data.accounts.map((a) => {
+                                                if (a._id === account._id) {
+                                                    return {
+                                                        ...a,
+                                                        tasks_waiting_for_resolution:
+                                                            a.tasks_waiting_for_resolution.filter(
+                                                                (t) => t.id !== task.id
+                                                            ),
+                                                    };
+                                                }
+                                                return a;
+                                            }),
+                                        }));
+                                        setResolvingTasks(resolvingTasks.filter((t) => t.id !== task.id));
+                                    },
+                                });
+                            }
                         }
                     });
                 }
             });
         }
-    }, [statusData]); */
+    }, [statusData, resolvingTasks]);
 
     if (!localStorage.getItem('token')) {
         return <Navigate to='/signin' />;
@@ -233,13 +301,12 @@ function Home() {
                         gap: 10,
                     }}
                 >
-                    {statusData &&
-                        statusData.current_collecting_tasks &&
-                        Object.keys(statusData.current_collecting_tasks).map((key) => {
-                            const task_name = statusData.current_collecting_tasks[key].title;
-                            const pay = statusData.current_collecting_tasks[key].pay;
-                            const level = statusData.current_collecting_tasks[key].level;
-                            const accounts = statusData.current_collecting_tasks[key].accounts;
+                    {current_collecting_tasks &&
+                        Object.keys(current_collecting_tasks).map((key) => {
+                            const task_name = current_collecting_tasks[key].title;
+                            const pay = current_collecting_tasks[key].pay;
+                            const level = current_collecting_tasks[key].level;
+                            const accounts = current_collecting_tasks[key].accounts;
 
                             const collecting_count = accounts.reduce((acc, account) => {
                                 if (account.task_status === 'collecting') {
@@ -273,9 +340,19 @@ function Home() {
                                 return acc;
                             }, 0);
 
+                            const allCollecting = accounts.every((account) => account.task_status === 'collecting');
+                            const someCollecting = accounts.some((account) => account.task_status === 'collecting');
+
+                            const status = allCollecting
+                                ? 'active'
+                                : !allCollecting && someCollecting
+                                ? 'mixed'
+                                : 'inactive';
+
                             return (
                                 <Task
                                     key={key}
+                                    status={status}
                                     title={task_name}
                                     pay={pay}
                                     level={level}
@@ -284,6 +361,8 @@ function Home() {
                                     paused_count={paused_count}
                                     expired_count={expired_count}
                                     onStatistics={() => showStatisticsHandler({ id: key, title: task_name })}
+                                    onPause={() => pauseTaskInAllAccounts(key)}
+                                    onResume={() => resumeTaskInAllAccounts(key)}
                                 />
                             );
                         })}
@@ -329,6 +408,12 @@ function Home() {
                     taskTitle={selectedTask.title}
                     onClose={() => setShowStatistics(false)}
                     statistics={selected_task_statistics}
+                    onPause={(account_id) => {
+                        pauseTask(account_id, selectedTask.id);
+                    }}
+                    onResume={(account_id) => {
+                        resumeTask(account_id, selectedTask.id);
+                    }}
                 />
             )}
             {showFavoritesModal && (

@@ -4,7 +4,7 @@ var beep_sound = new Audio(
 
 const browser = window.browser;
 
-export const create_tab = async ({ active = false, url, task_id, cookies, account_email, proxy }) => {
+export const create_tab = async ({ active = false, url, task_id, cookies, account_email, proxy, onResolved }) => {
     beep_sound.play();
 
     const identities = (await browser.contextualIdentities.query({})) ?? [];
@@ -40,12 +40,6 @@ export const create_tab = async ({ active = false, url, task_id, cookies, accoun
         });
     }
 
-    const tab = await browser.tabs.create({
-        active,
-        url,
-        cookieStoreId: identity_found.cookieStoreId,
-    });
-
     for (let cookie of cookies) {
         await browser.cookies.set({
             url: 'https://account.appen.com',
@@ -58,9 +52,15 @@ export const create_tab = async ({ active = false, url, task_id, cookies, accoun
         });
     }
 
-    const listener = function (tabId) {
+    const tab = await browser.tabs.create({
+        active,
+        url,
+        cookieStoreId: identity_found.cookieStoreId,
+    });
+
+    const listener = async function (tabId) {
         if (tabId === tab.id) {
-            alert('The tab with the id ' + tabId + ' has been closed.');
+            await onResolved();
             browser.tabs.onRemoved.removeListener(listener);
         }
     };

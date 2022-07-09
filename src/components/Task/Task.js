@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { Card, Button, Badge, Container } from 'react-bootstrap';
 
+const STATUS_COLOR = {
+    active: 'success',
+    mixed: 'warning',
+    inactive: 'danger',
+};
+
 const Task = ({
     title,
     pay,
@@ -11,9 +17,11 @@ const Task = ({
     expired_count,
     waiting_for_resolution_count,
     onPause,
+    onResume,
     onDelete,
+    status,
 }) => {
-    const [paused, setPaused] = useState(false);
+    const [paused, setPaused] = useState(status === 'inactive');
 
     const stateText = paused ? 'Resume' : 'Pause';
     const colorState = paused ? 'danger' : 'success';
@@ -21,14 +29,14 @@ const Task = ({
     return (
         <Card>
             <Card.Header
-                className={`fw-bold d-flex justify-content-between align-items-center gap-2 px-1 bg-${colorState}`}
+                className={`fw-bold d-flex justify-content-between align-items-center gap-2 px-1 bg-${STATUS_COLOR[status]}`}
             >
                 <Badge bg='light' className='text-dark'>
                     {pay}
                 </Badge>
                 <span
                     title={title}
-                    className={`d-inline-block text-nowrap text-truncate bg-${colorState}`}
+                    className={`d-inline-block text-nowrap text-truncate bg-${STATUS_COLOR[status]}`}
                     style={{ maxWidth: '100%' }}
                 >
                     {title}
@@ -51,7 +59,11 @@ const Task = ({
                     variant='primary'
                     onClick={() => {
                         setPaused(!paused);
-                        onPause && onPause();
+                        if (paused) {
+                            onResume();
+                        } else {
+                            onPause();
+                        }
                     }}
                 >
                     {stateText}

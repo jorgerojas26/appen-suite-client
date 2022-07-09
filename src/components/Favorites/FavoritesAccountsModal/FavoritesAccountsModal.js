@@ -1,6 +1,7 @@
 import { Modal, Badge } from 'react-bootstrap';
+import { toggleFavoriteActive } from '../../../services/favorite';
 
-const FavoritesAccountsModal = ({ data = [], show, onClose, toggleActive }) => {
+const FavoritesAccountsModal = ({ data = [], show, onClose, onToggle }) => {
     return (
         <Modal show={show} onHide={onClose} size='lg'>
             <Modal.Body>
@@ -10,8 +11,15 @@ const FavoritesAccountsModal = ({ data = [], show, onClose, toggleActive }) => {
                             <div key={index}>
                                 <Badge
                                     title='Click to toggle active'
-                                    bg={account.active ? 'success' : 'danger'}
-                                    onClick={() => toggleActive(account._id)}
+                                    bg={account.favorite_active ? 'success' : 'danger'}
+                                    onClick={async () => {
+                                        await toggleFavoriteActive(
+                                            account._id,
+                                            account.favorite_id,
+                                            !account.favorite_active
+                                        );
+                                        onToggle();
+                                    }}
                                     role='button'
                                 >
                                     {account.email}
