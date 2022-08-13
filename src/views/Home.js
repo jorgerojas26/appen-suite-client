@@ -14,7 +14,7 @@ import ProxiesModal from 'components/ProxiesModal';
 
 import favoritesMock from 'mocks/favorites';
 import blocksMock from 'mocks/blocks';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { create_tab } from '../browser/tabs';
 import { start, stop } from '../services/controls';
@@ -22,6 +22,7 @@ import {
     setTaskAsResolved,
     pauseTaskInAllAccounts,
     resumeTaskInAllAccounts,
+    deleteTaskInAllAccounts,
     pauseTask,
     resumeTask,
 } from '../services/task';
@@ -62,10 +63,14 @@ function Home() {
         isPaused: () => paused,
     });
 
-    const { data: accounts } = useSWR('/accounts');
+    const { data: accounts, mutate: updateAccounts } = useSWR('/accounts');
 
     const current_collecting_tasks = useMemo(() => {
         if (!statusData) {
+            return [];
+        }
+
+        if (!statusData.accounts) {
             return [];
         }
 
@@ -79,6 +84,8 @@ function Home() {
                     account_status: account.status,
                     fetch_count: task.fetch_count,
                     task_status: task.status,
+                    loginError: account.loginError,
+                    task_error_text: task.error_text,
                     pay: task.payout,
                     level: task.level,
                 };
@@ -117,6 +124,17 @@ function Home() {
                 break;
             case 'logout':
                 localStorage.removeItem('token');
+                setShowStatistics(false);
+                setSelectedTask({ id: '', title: '' });
+                setShowFavoritesModal(false);
+                setShowBlocksModal(false);
+                setShowAccountsModal(false);
+                setShowProxiesModal(false);
+                setScrapingEmail();
+                setPauseLoading(false);
+                setResolvingTasks([]);
+                updateStatusData(() => null);
+                updateAccounts(() => []);
                 navigate('/signin');
                 break;
             default:
@@ -131,6 +149,13 @@ function Home() {
         setSelectedTask({ id: task.id, title: task.title });
         setShowStatistics(true);
     };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/signin');
+        }
+    }, []);
 
     useEffect(() => {
         getStatus().then((response) => {
@@ -153,7 +178,7 @@ function Home() {
         if (window.browser) {
             create_tab({
                 url: 'https://whoer.net',
-                proxy: 'http://31.40.227.231:8800',
+                proxy: 'http://23.226.16.157:29842',
                 cookies: [],
                 task_id: '1120571',
                 account_email: 'fluby87555@hotmail.com',
@@ -170,13 +195,13 @@ function Home() {
             const proxy_host = proxy_url.hostname;
             const proxy_port = proxy_url.port || 80;
 
-            /* if (proxy_string) {
+            if (proxy_string) {
                 return {
                     type: 'http',
                     host: proxy_host,
                     port: proxy_port,
                 };
-            } */
+            }
 
             return null;
         };
@@ -246,10 +271,6 @@ function Home() {
         }
     }, [statusData, resolvingTasks]);
 
-    if (!localStorage.getItem('token')) {
-        return <Navigate to='/signin' />;
-    }
-
     return (
         <Container fluid className='p-0'>
             <Container
@@ -309,7 +330,7 @@ function Home() {
                             const accounts = current_collecting_tasks[key].accounts;
 
                             const collecting_count = accounts.reduce((acc, account) => {
-                                if (account.task_status === 'collecting') {
+                                if (account.task_status === 'collecting' && account.account_status === 'active') {
                                     return acc + 1;
                                 }
 
@@ -317,7 +338,11 @@ function Home() {
                             }, 0);
 
                             const paused_count = accounts.reduce((acc, account) => {
-                                if (account.task_status === 'paused') {
+                                if (
+                                    account.task_status === 'paused' ||
+                                    account.task_status === 'error' ||
+                                    account.account_status === 'inactive'
+                                ) {
                                     return acc + 1;
                                 }
 
@@ -340,13 +365,25 @@ function Home() {
                                 return acc;
                             }, 0);
 
-                            const allCollecting = accounts.every((account) => account.task_status === 'collecting');
-                            const someCollecting = accounts.some((account) => account.task_status === 'collecting');
+                            const allCollecting = accounts.every(
+                                (account) => account.task_status === 'collecting' && account.account_status === 'active'
+                            );
+                            const someCollecting = accounts.some(
+                                (account) => account.task_status === 'collecting' && account.account_status === 'active'
+                            );
+
+                            const allResolving = accounts.every(
+                                (account) =>
+                                    account.task_status === 'waiting-for-resolution' &&
+                                    account.account_status === 'active'
+                            );
 
                             const status = allCollecting
                                 ? 'active'
                                 : !allCollecting && someCollecting
                                 ? 'mixed'
+                                : allResolving
+                                ? 'all_resolving'
                                 : 'inactive';
 
                             return (
@@ -363,6 +400,7 @@ function Home() {
                                     onStatistics={() => showStatisticsHandler({ id: key, title: task_name })}
                                     onPause={() => pauseTaskInAllAccounts(key)}
                                     onResume={() => resumeTaskInAllAccounts(key)}
+                                    onDelete={() => deleteTaskInAllAccounts(key)}
                                 />
                             );
                         })}
@@ -376,7 +414,7 @@ function Home() {
                             <div className='d-flex flex-column align-items-center'>
                                 <select
                                     className='py-0 px-3 m-0'
-                                    onChange={(value) => setScrapingEmail(value)}
+                                    onChange={(e) => setScrapingEmail(e.target.value)}
                                     value={scrapingEmail}
                                     disabled={!accounts || !accounts.length}
                                 >

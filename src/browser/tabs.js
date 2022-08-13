@@ -16,9 +16,9 @@ export const create_tab = async ({ active = false, url, task_id, cookies, accoun
 
         const identity_name = identity_split[0];
         const identity_proxy = identity_split[1] ?? '';
-        const identity_task_name = identity_split[2] ?? '';
+        const identity_task_id = identity_split[2] ?? '';
 
-        if (identity_name === account_email && identity_task_name === task_id) {
+        if (identity_name === account_email && identity_task_id == task_id) {
             identity_found = identity;
 
             if (identity_proxy !== proxy) {
@@ -57,6 +57,8 @@ export const create_tab = async ({ active = false, url, task_id, cookies, accoun
         url,
         cookieStoreId: identity_found.cookieStoreId,
     });
+
+    console.log('tab', tab);
 
     const listener = async function (tabId) {
         if (tabId === tab.id) {

@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { Offcanvas, Button } from 'react-bootstrap';
 import FavoritesAccountsModal from '../FavoritesAccountsModal';
 import FavoritesItem from '../FavoritesItem';
 import AddItemModal from 'components/AddItemModal';
 
-import { toggleFavoriteActiveInAllAccounts, createFavorite } from '../../../services/favorite';
+import { toggleFavoriteActiveInAllAccounts, createFavorite, deleteFavorite } from '../../../services/favorite';
 
 import useSWR from 'swr';
 
@@ -15,12 +15,20 @@ const FavoritesModal = ({ show, onClose }) => {
     const [selectedFavorite, setSelectedFavorite] = useState(null);
     const [showAddItemModal, setShowAddItemModal] = useState(false);
 
+    useEffect(() => {
+        if (selectedFavorite) {
+            setSelectedFavorite((old) => {
+                return favorites.find((favorite) => favorite._id.toString() === old._id.toString());
+            });
+        }
+    }, [favorites, selectedFavorite]);
+
     const renderIncludeList = () => {
         return (
             <div className='container hstack gap-2'>
                 {favorites &&
                     favorites.map((favorite) => {
-                        const id = favorites._id;
+                        const id = favorite._id;
                         const name = favorite.name;
 
                         const activeInAllAccounts = favorite.accounts.every((account) => account.favorite_active);
@@ -38,7 +46,7 @@ const FavoritesModal = ({ show, onClose }) => {
                                 title={name}
                                 status={status}
                                 onClick={async (event) => {
-                                    if (event.ctrlKey) {
+                                    if (event.shiftKey) {
                                         await toggleFavoriteActiveInAllAccounts(
                                             id,
                                             status === 'mixed' || status === 'active' ? false : true
@@ -46,6 +54,13 @@ const FavoritesModal = ({ show, onClose }) => {
                                         updateFavorites();
                                     } else {
                                         setSelectedFavorite(favorite);
+                                    }
+                                }}
+                                onDelete={async () => {
+                                    const confirm = window.confirm(`Are you sure you want to delete ${name}?`);
+                                    if (confirm) {
+                                        await deleteFavorite(id);
+                                        updateFavorites();
                                     }
                                 }}
                             />
@@ -82,15 +97,6 @@ const FavoritesModal = ({ show, onClose }) => {
                     onClose={() => setSelectedFavorite(null)}
                     onToggle={() => {
                         updateFavorites();
-                        setSelectedFavorite({
-                            ...selectedFavorite,
-                            accounts: selectedFavorite.accounts.map((account) => {
-                                return {
-                                    ...account,
-                                    favorite_active: !account.favorite_active,
-                                };
-                            }),
-                        });
                     }}
                     // toggleActive={(accountId) => toggleActive({ favoriteId: selectedFavorite._id, accountId })}
                 />

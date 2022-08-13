@@ -1,7 +1,9 @@
 export const LEGEND = {
     collecting: 'success',
     paused: 'danger',
-    expired: 'secondary',
+    expired: 'light-secondary',
+    error: 'secondary',
+    account_inactive: 'info',
 };
 
 const StatisticsLegend = () => {

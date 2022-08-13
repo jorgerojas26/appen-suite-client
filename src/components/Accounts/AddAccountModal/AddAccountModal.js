@@ -50,7 +50,7 @@ const AddAccountModal = ({ show, onClose }) => {
             updateAccounts((old) => [...old, ...response.data]);
             onClose();
         } else {
-            setFormError(response.data.error);
+            setFormError(response.data.error.message);
         }
     };
 

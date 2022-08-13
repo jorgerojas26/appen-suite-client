@@ -81,3 +81,19 @@ export const resumeTaskInAllAccounts = async (taskId) => {
 
     return false;
 };
+
+export const deleteTaskInAllAccounts = async (taskId) => {
+    const response = await fetch(`${API_URL}/tasks/undefined/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (response.status === 200) {
+        return true;
+    }
+
+    return false;
+};

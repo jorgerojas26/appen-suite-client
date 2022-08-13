@@ -8,14 +8,12 @@ import { HashRouter } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const token = localStorage.getItem('token');
-
 const fetcher = (key, ...args) =>
     fetch(`${API_URL}${key}`, {
         ...args,
         headers: {
             ...args.headers,
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
     }).then((res) => res.json());
 

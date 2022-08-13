@@ -47,3 +47,17 @@ export const toggleFavoriteActiveInAllAccounts = async (favoriteId, active) => {
 
     return { status: response.status, data };
 };
+
+export const deleteFavorite = async (favoriteId) => {
+    const response = await fetch(`${API_URL}/favorites/${favoriteId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    const data = await response.json();
+
+    return { status: response.status, data };
+};

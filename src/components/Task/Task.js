@@ -5,6 +5,7 @@ const STATUS_COLOR = {
     active: 'success',
     mixed: 'warning',
     inactive: 'danger',
+    all_resolving: 'primary',
 };
 
 const Task = ({
@@ -22,9 +23,10 @@ const Task = ({
     status,
 }) => {
     const [paused, setPaused] = useState(status === 'inactive');
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [pauseLoading, setPauseLoading] = useState(false);
 
     const stateText = paused ? 'Resume' : 'Pause';
-    const colorState = paused ? 'danger' : 'success';
 
     return (
         <Card>
@@ -57,19 +59,29 @@ const Task = ({
                 </Button>
                 <Button
                     variant='primary'
-                    onClick={() => {
+                    onClick={async () => {
+                        setPauseLoading(true);
                         setPaused(!paused);
                         if (paused) {
-                            onResume();
+                            await onResume();
                         } else {
-                            onPause();
+                            await onPause();
                         }
+                        setPauseLoading(false);
                     }}
                 >
-                    {stateText}
+                    {pauseLoading ? 'Loading...' : stateText}
                 </Button>
-                <Button variant='danger' onClick={onDelete}>
-                    Delete
+                <Button
+                    variant='danger'
+                    onClick={async () => {
+                        setDeleteLoading(true);
+                        await onDelete();
+                        setDeleteLoading(false);
+                    }}
+                    disabled={deleteLoading}
+                >
+                    {deleteLoading ? 'Deleting...' : 'Delete'}
                 </Button>
             </Card.Footer>
         </Card>

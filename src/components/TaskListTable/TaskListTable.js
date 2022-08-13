@@ -18,7 +18,9 @@ const TaskListTable = ({ data }) => {
                     data.map((task) => (
                         <tr key={task.id}>
                             <td>{task.id}</td>
-                            <td>{task.jobTitle}</td>
+                            <td>
+                                <a href={task.url}>{task.jobTitle}</a>
+                            </td>
                             <td>{task.level}</td>
                             <td>{task.pay}</td>
                             <td>{task.numOfTasks}</td>

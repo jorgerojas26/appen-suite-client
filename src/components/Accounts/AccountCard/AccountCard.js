@@ -37,7 +37,7 @@ const AccountCard = ({ data, onSave }) => {
         });
 
         if (response.status === 200) {
-            updateAccounts((old) => [old.filter((acc) => acc._id !== data._id), response.data]);
+            //updateAccounts((old) => [old.filter((acc) => acc._id !== data._id), response.data]);
             onSave();
         }
     };

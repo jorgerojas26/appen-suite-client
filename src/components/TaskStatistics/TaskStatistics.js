@@ -2,6 +2,8 @@ import { Offcanvas, Badge, Button } from 'react-bootstrap';
 import StatisticsLegend, { LEGEND } from './StatisticsLegend';
 
 const TaskStatistics = ({ placement, taskTitle, show, statistics, onClose, onPause, onResume }) => {
+    console.log('TaskStatistics', statistics);
+
     return (
         <Offcanvas
             show={show}
@@ -10,13 +12,14 @@ const TaskStatistics = ({ placement, taskTitle, show, statistics, onClose, onPau
             backdrop={false}
             enforceFocus={false}
             autoFocus={false}
+            className='h-50 w-100'
         >
             <Offcanvas.Header closeButton className='py-0 '>
                 <div className='d-flex justify-content-center w-100'>
                     <Offcanvas.Title>{taskTitle}</Offcanvas.Title>
                 </div>
             </Offcanvas.Header>
-            <Offcanvas.Body className='bg-dark rounded border'>
+            <Offcanvas.Body className='bg-dark rounded border h-100 overflow-auto'>
                 <div id='legend' className='mb-3'>
                     <StatisticsLegend />
                 </div>
@@ -40,11 +43,24 @@ const TaskStatistics = ({ placement, taskTitle, show, statistics, onClose, onPau
                                     }}
                                 >
                                     <Badge
-                                        bg={LEGEND[account.task_status]}
+                                        bg={
+                                            LEGEND[
+                                                account.account_status === 'inactive'
+                                                    ? 'account_inactive'
+                                                    : account.task_status
+                                            ]
+                                        }
                                         key={account.account_id}
-                                        title={account.email}
+                                        title={
+                                            account.task_error_text
+                                                ? account.task_error_text
+                                                : account.loginError
+                                                ? account.loginError
+                                                : account.email
+                                        }
+                                        className='text-truncate'
                                     >
-                                        {account.email}:
+                                        {account.email}
                                     </Badge>
                                     <Badge bg='secondary' className='text-light' title={account.fetch_count}>
                                         {account.fetch_count || 0}
