@@ -1,8 +1,7 @@
 const API_URL = process.env.REACT_APP_API_URL;
 
-const token = localStorage.getItem('token');
-
 export const saveProxy = async (proxyUrl) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/proxies`, {
         method: 'POST',
         headers: {
@@ -18,6 +17,7 @@ export const saveProxy = async (proxyUrl) => {
 };
 
 export const saveProxyBulk = async (proxies) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/proxies/bulk`, {
         method: 'POST',
         headers: {
@@ -33,6 +33,7 @@ export const saveProxyBulk = async (proxies) => {
 };
 
 export const deleteProxy = async (id) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/proxies/${id}`, {
         method: 'DELETE',
         headers: {

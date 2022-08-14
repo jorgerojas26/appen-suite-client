@@ -1,8 +1,7 @@
 const API_URL = process.env.REACT_APP_API_URL;
 
-const token = localStorage.getItem('token');
-
 export const setTaskAsResolved = async (account_id, taskId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/tasks/${account_id}/${taskId}/resolve`, {
         method: 'POST',
         headers: {
@@ -19,6 +18,7 @@ export const setTaskAsResolved = async (account_id, taskId) => {
 };
 
 export const pauseTask = async (account_id, taskId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/tasks/${account_id}/${taskId}/pause`, {
         method: 'POST',
         headers: {
@@ -35,6 +35,7 @@ export const pauseTask = async (account_id, taskId) => {
 };
 
 export const resumeTask = async (account_id, taskId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/tasks/${account_id}/${taskId}/resume`, {
         method: 'POST',
         headers: {
@@ -51,6 +52,7 @@ export const resumeTask = async (account_id, taskId) => {
 };
 
 export const pauseTaskInAllAccounts = async (taskId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/tasks/pause/${taskId}`, {
         method: 'POST',
         headers: {
@@ -67,6 +69,7 @@ export const pauseTaskInAllAccounts = async (taskId) => {
 };
 
 export const resumeTaskInAllAccounts = async (taskId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/tasks/resume/${taskId}`, {
         method: 'POST',
         headers: {
@@ -83,6 +86,7 @@ export const resumeTaskInAllAccounts = async (taskId) => {
 };
 
 export const deleteTaskInAllAccounts = async (taskId) => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/tasks/undefined/${taskId}`, {
         method: 'DELETE',
         headers: {

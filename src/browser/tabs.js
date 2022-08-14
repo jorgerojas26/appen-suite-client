@@ -58,8 +58,6 @@ export const create_tab = async ({ active = false, url, task_id, cookies, accoun
         cookieStoreId: identity_found.cookieStoreId,
     });
 
-    console.log('tab', tab);
-
     const listener = async function (tabId) {
         if (tabId === tab.id) {
             await onResolved();

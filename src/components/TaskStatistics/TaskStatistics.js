@@ -2,8 +2,6 @@ import { Offcanvas, Badge, Button } from 'react-bootstrap';
 import StatisticsLegend, { LEGEND } from './StatisticsLegend';
 
 const TaskStatistics = ({ placement, taskTitle, show, statistics, onClose, onPause, onResume }) => {
-    console.log('TaskStatistics', statistics);
-
     return (
         <Offcanvas
             show={show}

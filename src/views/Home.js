@@ -235,11 +235,12 @@ function Home() {
                         );
 
                         if (!already_resolving) {
-                            setResolvingTasks([...resolvingTasks, { id: task.id, account_email: account.email }]);
+                            console.log('being resolving ', task.id, account.email);
+                            setResolvingTasks((old) => [...old, { id: task.id, account_email: account.email }]);
                             if (window.browser) {
                                 create_tab({
                                     url: task.url,
-                                    proxy: `http://${task.proxy.host}:${task.proxy.port}`,
+                                    proxy: task.proxy && `http://${task.proxy.host}:${task.proxy.port}`,
                                     cookies: account.cookieJar.cookies,
                                     task_id: task.id,
                                     account_email: account.email,
@@ -260,16 +261,18 @@ function Home() {
                                                 return a;
                                             }),
                                         }));
-                                        setResolvingTasks(resolvingTasks.filter((t) => t.id !== task.id));
+                                        setResolvingTasks((old) => old.filter((t) => t.id !== task.id));
                                     },
                                 });
                             }
+                        } else {
+                            console.log('this task is already resolving', task, 'by this account', account.email);
                         }
                     });
                 }
             });
         }
-    }, [statusData, resolvingTasks]);
+    }, [statusData]);
 
     return (
         <Container fluid className='p-0'>
