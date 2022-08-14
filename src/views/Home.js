@@ -54,13 +54,8 @@ function Home() {
     const [resolvingTasks, setResolvingTasks] = useState([]);
 
     const { data: statusData, mutate: updateStatusData } = useSWR('/status', null, {
-        refreshInterval: Number(delay) / 2,
         revalidateOnFocus: false,
-        //revalidateIfStale: true,
-        refreshWhenHidden: true,
-        errorRetryCount: 3,
-        shouldRetryOnError: false,
-        isPaused: () => paused,
+        revalidateOnMount: false,
     });
 
     const { data: accounts, mutate: updateAccounts } = useSWR('/accounts');
@@ -235,7 +230,6 @@ function Home() {
                         );
 
                         if (!already_resolving) {
-                            console.log('being resolving ', task.id, account.email);
                             setResolvingTasks((old) => [...old, { id: task.id, account_email: account.email }]);
                             if (window.browser) {
                                 create_tab({
@@ -265,14 +259,23 @@ function Home() {
                                     },
                                 });
                             }
-                        } else {
-                            console.log('this task is already resolving', task, 'by this account', account.email);
                         }
                     });
                 }
             });
         }
     }, [statusData]);
+
+    useEffect(() => {
+        if (!paused) {
+            setTimeout(function refreshStatus() {
+                console.log('refreshStatus');
+                updateStatusData().then(() => {
+                    setTimeout(refreshStatus, 500);
+                });
+            }, 500);
+        }
+    }, [paused]);
 
     return (
         <Container fluid className='p-0'>
