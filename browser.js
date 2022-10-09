@@ -3,6 +3,7 @@ import { join, dirname } from 'path';
 import { connect } from './node_modules/web-ext/lib/firefox/remote.js';
 
 import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
 
 const RDP_PORT = 12345;
 
@@ -25,27 +26,12 @@ const extensionPath = join(dirname(__filename), './build');
     const addon = await client.getInstalledAddon(resp.addon.id);
     const addonPage = addon.manifestURL.replace('manifest.json', 'index.html');
 
-    const browserContext = await browser.newContext({
-        storageState: {
-            origins: [
-                {
-                    origin: addonPage,
-                    localStorage: [
-                        {
-                            name: 'token',
-                            value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjMzMDZhMmRlNmRkNjg5MWJlMDFkY2ZjIn0sImlhdCI6MTY2NDExNzI5M30.hYSTv5foYIPHwBfFZc6gzPebKfzLLs8B-fwcuHDGhvk',
-                        },
-                    ],
-                },
-            ],
-        },
-    });
+    const browserContext = await browser.newContext(devices['Desktop Firefox']);
 
     const page = await browserContext.newPage();
-    await page
-        .goto(addonPage, {
-            waitUntil: 'domcontentloaded',
-            timeout: 1000,
-        })
-        .catch(() => {});
+    page.goto(addonPage, {
+        waitUntil: 'networkidle',
+    });
+    await page.waitForURL(addonPage);
+    console.log('hola');
 })();

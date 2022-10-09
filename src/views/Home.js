@@ -118,19 +118,19 @@ function Home() {
                 setShowProxiesModal(true);
                 break;
             case 'logout':
-                localStorage.removeItem('token');
-                setShowStatistics(false);
-                setSelectedTask({ id: '', title: '' });
-                setShowFavoritesModal(false);
-                setShowBlocksModal(false);
-                setShowAccountsModal(false);
-                setShowProxiesModal(false);
-                setScrapingEmail();
-                setPauseLoading(false);
-                setResolvingTasks([]);
-                updateStatusData(() => null);
-                updateAccounts(() => []);
-                navigate('/signin');
+                // localStorage.removeItem('token');
+                // setShowStatistics(false);
+                // setSelectedTask({ id: '', title: '' });
+                // setShowFavoritesModal(false);
+                // setShowBlocksModal(false);
+                // setShowAccountsModal(false);
+                // setShowProxiesModal(false);
+                // setScrapingEmail();
+                // setPauseLoading(false);
+                // setResolvingTasks([]);
+                // updateStatusData(() => null);
+                // updateAccounts(() => []);
+                // navigate('/signin');
                 break;
             default:
         }
@@ -145,12 +145,12 @@ function Home() {
         setShowStatistics(true);
     };
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/signin');
-        }
-    }, []);
+    // useEffect(() => {
+    //     const token = localStorage.getItem('token');
+    //     if (!token) {
+    //         navigate('/signin');
+    //     }
+    // }, []);
 
     useEffect(() => {
         getStatus().then((response) => {
@@ -276,6 +276,19 @@ function Home() {
             }, 500);
         }
     }, [paused]);
+
+    useEffect(() => {
+        if (paused && scrapingEmail && delay) {
+            start({
+                scraping_email: scrapingEmail,
+                scraping_delay: delay,
+            }).then((response) => {
+                if (response && response.status === 200) {
+                    setPaused(false);
+                }
+            });
+        }
+    }, [scrapingEmail, paused, delay]);
 
     return (
         <Container fluid className='p-0'>
