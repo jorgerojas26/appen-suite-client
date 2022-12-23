@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 
 const TimeStarter = ({ paused, onToggle, loading, disabled }) => {
-    const [delay, setDelay] = useState(1000);
+    const [delay, setDelay] = useState(3000);
 
     const toggle = () => {
         onToggle && onToggle({ paused: !paused, delay });
