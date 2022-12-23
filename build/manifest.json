@@ -1,7 +1,0 @@
-{
-    "name": "Appen Suite Client",
-    "description": "The ultimate suite client for Appen",
-    "version": "1.0.0",
-    "manifest_version": 2,
-    "permissions": ["tabs", "contextualIdentities", "proxy", "<all_urls>", "cookies"]
-}

@@ -31,6 +31,7 @@ const extensionPath = join(dirname(__filename), './build');
     const page = await browserContext.newPage();
     page.goto(addonPage, {
         waitUntil: 'networkidle',
+        timeout: 0,
     });
     await page.waitForURL(addonPage);
     console.log('hola');

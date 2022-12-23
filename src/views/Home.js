@@ -48,7 +48,7 @@ function Home() {
     const [showAccountsModal, setShowAccountsModal] = useState(false);
     const [showProxiesModal, setShowProxiesModal] = useState(false);
     const [paused, setPaused] = useState(true);
-    const [delay, setDelay] = useState(1000);
+    const [delay, setDelay] = useState(3000);
     const [scrapingEmail, setScrapingEmail] = useState();
     const [pauseLoading, setPauseLoading] = useState(false);
     const [resolvingTasks, setResolvingTasks] = useState([]);
@@ -400,10 +400,10 @@ function Home() {
                             const status = allCollecting
                                 ? 'active'
                                 : !allCollecting && someCollecting
-                                ? 'mixed'
-                                : allResolving
-                                ? 'all_resolving'
-                                : 'inactive';
+                                    ? 'mixed'
+                                    : allResolving
+                                        ? 'all_resolving'
+                                        : 'inactive';
 
                             return (
                                 <Task
