@@ -33,6 +33,5 @@ const extensionPath = join(dirname(__filename), './build');
         waitUntil: 'networkidle',
         timeout: 0,
     });
-    await page.waitForURL(addonPage);
     console.log('hola');
 })();
