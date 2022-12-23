@@ -239,25 +239,40 @@ function Home() {
                                     task_id: task.id,
                                     account_email: account.email,
                                     onResolved: async () => {
-                                        await setTaskAsResolved(account._id, task.id);
-                                        updateStatusData((data) => ({
-                                            ...data,
-                                            accounts: data.accounts.map((a) => {
-                                                if (a._id === account._id) {
-                                                    return {
-                                                        ...a,
-                                                        tasks_waiting_for_resolution:
-                                                            a.tasks_waiting_for_resolution.filter(
-                                                                (t) => t.id !== task.id
-                                                            ),
-                                                    };
-                                                }
-                                                return a;
-                                            }),
-                                        }));
-                                        setResolvingTasks((old) =>
-                                            old.filter((t) => t.id !== task.id && t.account_email !== account.email)
-                                        );
+                                        const resolved = await setTaskAsResolved(account._id, task.id);
+                                        if (resolved) {
+                                            updateStatusData((data) => ({
+                                                ...data,
+                                                accounts: data.accounts.map((a) => {
+                                                    if (a._id === account._id) {
+                                                        return {
+                                                            ...a,
+                                                            tasks_waiting_for_resolution:
+                                                                a.tasks_waiting_for_resolution.filter(
+                                                                    (t) => t.id !== task.id
+                                                                ),
+                                                        };
+                                                    }
+                                                    return a;
+                                                }),
+                                            }));
+                                            setResolvingTasks((old) => {
+                                                console.log('old', old);
+                                                const new_resolving = old.filter((t) => {
+                                                    if (t.id === task.id && t.account_email === account.email) {
+                                                        return false;
+                                                    }
+                                                    return true;
+                                                });
+                                                console.log('new_resolving', new_resolving);
+                                                console.log('account.email', account.email);
+                                                console.log('task.id', task.id);
+
+                                                return new_resolving;
+                                            });
+                                        } else {
+                                            console.log('Failed to get task as resolved on the server');
+                                        }
                                     },
                                 });
                             }
@@ -266,7 +281,7 @@ function Home() {
                 }
             });
         }
-    }, [statusData]);
+    }, [statusData, resolvingTasks, updateStatusData]);
 
     useEffect(() => {
         if (!paused) {

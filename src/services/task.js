@@ -1,20 +1,25 @@
 const API_URL = process.env.REACT_APP_API_URL;
 
 export const setTaskAsResolved = async (account_id, taskId) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/tasks/${account_id}/${taskId}/resolve`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        },
-    });
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/${account_id}/${taskId}/resolve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
 
-    if (response.status === 200) {
-        return true;
+        if (response.status === 200) {
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.log('setTaskAsResolved error', error);
+        return false;
     }
-
-    return false;
 };
 
 export const pauseTask = async (account_id, taskId) => {
