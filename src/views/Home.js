@@ -255,7 +255,9 @@ function Home() {
                                                 return a;
                                             }),
                                         }));
-                                        setResolvingTasks((old) => old.filter((t) => t.id !== task.id));
+                                        setResolvingTasks((old) =>
+                                            old.filter((t) => t.id !== task.id && t.account_email !== account.email)
+                                        );
                                     },
                                 });
                             }

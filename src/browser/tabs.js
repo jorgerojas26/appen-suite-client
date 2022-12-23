@@ -58,7 +58,7 @@ export const create_tab = async ({ active = false, url, task_id, cookies, accoun
         cookieStoreId: identity_found.cookieStoreId,
     });
 
-    const listener = async function (tabId) {
+    const listener = async function(tabId) {
         if (tabId === tab.id) {
             await onResolved();
             browser.tabs.onRemoved.removeListener(listener);
