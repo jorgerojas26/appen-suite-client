@@ -1,37 +1,43 @@
-import { firefox, devices } from 'playwright';
-import { join, dirname } from 'path';
-import { connect } from './node_modules/web-ext/lib/firefox/remote.js';
-
-import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
-
-const RDP_PORT = 12345;
-
-const __filename = fileURLToPath(import.meta.url);
-
-const extensionPath = join(dirname(__filename), './build');
+const fs = require('fs');
+const { By } = require('selenium-webdriver');
+const webdriver = require('selenium-webdriver');
+const firefox = require('selenium-webdriver/firefox');
 
 (async () => {
-    const browser = await firefox.launch({
-        headless: false,
-        args: ['-start-debugger-server', String(RDP_PORT)],
-        firefoxUserPrefs: {
-            'devtools.debugger.remote-enabled': true,
-            'devtools.debugger.prompt-connection': false,
-        },
-    });
+    const options = new firefox.Options().addExtensions('./extension.zip').headless();
 
-    const client = await connect(RDP_PORT);
-    const resp = await client.installTemporaryAddon(extensionPath);
-    const addon = await client.getInstalledAddon(resp.addon.id);
-    const addonPage = addon.manifestURL.replace('manifest.json', 'index.html');
+    const driver = new webdriver.Builder().forBrowser(webdriver.Browser.FIREFOX).setFirefoxOptions(options).build();
+    const addonId = await driver.installAddon('./build', true);
 
-    const browserContext = await browser.newContext(devices['Desktop Firefox']);
+    const capabilities = await driver.getCapabilities();
+    const profile = capabilities.get('moz:profile');
+    setTimeout(async () => {
+        const prefs = fs.readFileSync(`${profile}/prefs.js`);
+        const extensionUuid = getExtensionUuid(prefs.toString(), addonId);
 
-    const page = await browserContext.newPage();
-    page.goto(addonPage, {
-        waitUntil: 'networkidle',
-        timeout: 0,
-    });
-    console.log('hola');
+        await driver.get(`moz-extension://${extensionUuid}/index.html`);
+
+        const accountsButton = await driver.findElement(By.xpath('/html/body/div/div/div[1]/div[2]/button[1]'));
+        accountsButton.click();
+    }, 5000);
 })();
+
+const getExtensionUuid = (prefsFileContent, addonId) => {
+    if (!prefsFileContent) return null;
+
+    let uuid = null;
+
+    const userPrefsList = prefsFileContent.split(';');
+
+    userPrefsList.forEach((pref) => {
+        if (pref.includes('extensions.webextensions.uuids')) {
+            let uuids = pref.split('user_pref("extensions.webextensions.uuids",')[1];
+            uuids = uuids.substring(0, uuids.length - 1);
+            const parsedUuids = JSON.parse(JSON.parse(uuids));
+
+            uuid = parsedUuids[addonId];
+        }
+    });
+
+    return uuid;
+};

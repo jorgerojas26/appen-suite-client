@@ -5,7 +5,7 @@ export const start = async ({ scraping_email, scraping_delay }) => {
     const response = await fetch(`${API_URL}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ scraping_email, scraping_delay }),
+        body: JSON.stringify({ scraping_email, scraping_delay: Number(scraping_delay) }),
     });
 
     const data = await response.json();
